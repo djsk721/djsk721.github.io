@@ -4,8 +4,8 @@ permalink: /
 ---
 
 <section class="hero">
-  <h2>Welcome to My Blog</h2>
-  <p>Pure Jekyll + GitHub Pages - Fast, Lightweight, Simple.</p>
+  <h2>Hello World</h2>
+  <p>잡다한 기술 블로그.</p>
 </section>
 
 <div class="posts-grid">
