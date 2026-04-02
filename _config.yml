@@ -1,0 +1,42 @@
+# Jekyll Config for Minimalist Blog
+title: djsk721's Blog
+description: Pure, fast, and minimalist blog on GitHub Pages
+baseurl: ""
+url: "https://djsk721.github.io"
+
+# Build settings
+remote_theme: null  # 테마 없음 (Pure custom)
+markdown: kramdown
+highlighter: rouge
+permalink: /:year/:month/:day/:title/
+future: true
+
+# Author info
+author:
+  name: djsk721
+  email: kimjunghyun696@gmail.com
+  github: djsk721
+
+# Site settings
+# paginate: 5  # Uncomment when jekyll-paginate gem is added
+# paginate_path: "/page:num"
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post
+
+# Exclude from build
+exclude:
+  - _site
+  - vendor
+  - .jekyll-cache
+  - .bundle
+  - .bundle-home
+  - Gemfile
+  - README.md
+  - .gitignore
+  - node_modules

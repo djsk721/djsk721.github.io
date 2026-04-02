@@ -1,0 +1,80 @@
+<header class="site-header">
+  <div class="header-inner">
+    <h1 class="site-title">
+      <a href="{{ '/' | relative_url }}">{{ site.title }}</a>
+    </h1>
+
+    <nav class="site-nav" id="siteNav">
+      <ul>
+        <li>
+          <a href="{{ '/' | relative_url }}" class="nav-link {% if page.url == '/' %}nav-current{% endif %}">
+            홈
+          </a>
+        </li>
+        {% assign nav_pages = site.pages | sort: "title" %}
+        {% for item in nav_pages %}
+          {% if item.title and item.url != '/404.html' and item.url != '/' %}
+          <li>
+            <a href="{{ item.url | relative_url }}" class="nav-link {% if page.url == item.url %}nav-current{% endif %}">
+              {{ item.title }}
+            </a>
+          </li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </nav>
+
+    <button
+      class="mobile-menu-toggle"
+      id="mobileMenuToggle"
+      type="button"
+      aria-label="메뉴 열기"
+      aria-controls="siteNav"
+      aria-expanded="false"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </div>
+</header>
+
+<script>
+(function() {
+  const mobileToggle = document.getElementById('mobileMenuToggle');
+  const siteNav = document.getElementById('siteNav');
+  
+  if (mobileToggle && siteNav) {
+    mobileToggle.addEventListener('click', function() {
+      const isExpanded = this.getAttribute('aria-expanded') === 'true';
+
+      this.setAttribute('aria-expanded', String(!isExpanded));
+      this.setAttribute('aria-label', isExpanded ? '메뉴 열기' : '메뉴 닫기');
+      this.classList.toggle('is-active', !isExpanded);
+      siteNav.classList.toggle('is-active', !isExpanded);
+    });
+
+    document.addEventListener('click', function(e) {
+      if (siteNav.classList.contains('is-active')) {
+        if (!mobileToggle.contains(e.target) && !siteNav.contains(e.target)) {
+          siteNav.classList.remove('is-active');
+          mobileToggle.classList.remove('is-active');
+          mobileToggle.setAttribute('aria-expanded', 'false');
+          mobileToggle.setAttribute('aria-label', '메뉴 열기');
+        }
+      }
+    });
+
+    siteNav.querySelectorAll('a').forEach(function(link) {
+      link.addEventListener('click', function() {
+        if (siteNav.classList.contains('is-active')) {
+          siteNav.classList.remove('is-active');
+          mobileToggle.classList.remove('is-active');
+          mobileToggle.setAttribute('aria-expanded', 'false');
+          mobileToggle.setAttribute('aria-label', '메뉴 열기');
+        }
+      });
+    });
+  }
+})();
+</script>

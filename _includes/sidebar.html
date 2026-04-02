@@ -1,0 +1,23 @@
+<aside class="content-sidebar" aria-label="카테고리 사이드바">
+  <div class="sidebar-card">
+    <h2 class="sidebar-title">Categories</h2>
+    {% assign sorted_categories = site.categories | sort %}
+    {% if sorted_categories.size > 0 %}
+    <ul class="sidebar-category-list">
+      {% for category in sorted_categories %}
+        {% assign category_name = category[0] %}
+        {% assign category_posts = category[1] %}
+        {% assign category_id = category_name | slugify %}
+        <li>
+          <a href="{{ '/categories/#' | append: category_id | relative_url }}" class="sidebar-category-link">
+            <span>{{ category_name }}</span>
+            <span class="sidebar-category-count">{{ category_posts | size }}</span>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="sidebar-empty">No categories yet.</p>
+    {% endif %}
+  </div>
+</aside>
