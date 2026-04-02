@@ -2,7 +2,7 @@
 title: "임상 데이터 Outlier 처리 및 변수별 기준값 정리"
 date: 2026-04-02
 description: 임상 바이탈사인, GCS, 검사값의 데이터 유효 범위 및 극단치(Outlier) 처리 기준 정리. 실제 코드 적용/분석 시 참고.
-categories: [data]
+categories: [medical]
 tags: [데이터전처리, 임상데이터, 바이탈, outlier, range, 기준값]
 ---
 

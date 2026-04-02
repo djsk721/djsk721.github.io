@@ -1,6 +1,16 @@
+---
+title: "PyDicom: 의료영상(DICOM) 파이썬 처리 가이드"
+date: 2026-04-02
+description: Python 패키지인 PyDicom을 활용하여 DICOM 의료영상 파일을 읽고, 헤더 정보 추출 및 이미지를 시각화하는 실전 예제와 유용한 팁 안내
+categories: [python]
+tags: [dicom, pydicom, 의료영상, medical imaging, 파이썬, 이미지분석]
+---
+
+
 <aside>
 
-💡 **Dicom** format: 의료영상정보를 처리하기 위한 국제 표준 이미지 형식으로, 헤더 메타 데이터(이미지 설명 데이터, 환자 데이터)+이미지로 구성됨
+**DICOM** 포맷: 의료영상 정보를 위해 사용되는 국제 표준 이미지 포맷.  
+→ 헤더(meta 데이터: 이미지 설명, 환자 정보 등) + 바이너리 이미지 데이터로 구성됨
 
 </aside>
 
@@ -8,36 +18,38 @@
 
 ## **PyDicom**
 
-- 공식문서 페이지 [https://pydicom.github.io/7](https://pydicom.github.io/7)
+- 공식문서: [https://pydicom.github.io/](https://pydicom.github.io/)
+
+```bash
+pip install pydicom
+```
 
 ```python
-pip install pydicom
-
 import pydicom
 ```
 
 ---
 
-### 데이터 읽기 (.dcmread)
+### DICOM 데이터 읽기 (.dcmread)
 
 ```python
-# key-value 쌍을 가지는 dict 형태로 출력됨 
-dcm_data = pydicom.dcmread('path')
-dcm_data
+# DICOM 파일을 읽어 들여 key-value 쌍(딕셔너리 형태) 반환
+dcm_data = pydicom.dcmread('path/to/file.dcm')
+print(dcm_data)
 ```
 
-- key
-- value
+- **key**: 태그명
+- **value**: 값
 
 ```python
-# 키워드를 통해 표준 요소에 액세스할 수 있음 
-
+# 키 또는 속성으로 주요 표준 요소 접근 가능
 dcm_data['SOPInstanceUID']
 dcm_data.SOPInstanceUID
 
-# 요소는 multi-valued일 수 있음(VM > 1)
+# 단일/다중 값 요소(VM>1) 모두 지원
 dcm_data.ImageType
 
+# 파일 메타정보도 별도로 접근 가능
 dcm_data.file_meta
 ```
 
@@ -45,19 +57,23 @@ dcm_data.file_meta
 
 ---
 
-### load option
+### 효율적인 로드 옵션
 
-Img array가 무거우므로 로드 시 out of memory 발생할 수 있음 → header만 불러와 탐색하기
+DICOM 파일은 이미지 array가 매우 클 수 있음  
+→ OOM(메모리 부족) 방지를 위해 header 정보만 로드하거나 지정 태그만 일부 탐색 가능
 
 ```python
-# option 
-stop_before_pixels=True
-specific_tags=['header1', 'header2', ...]
+# 주요 옵션 예시
+dcm_data = pydicom.dcmread(
+    'path/to/file.dcm',
+    stop_before_pixels=True,  # 이미지(pixels) 데이터 로드하지 않음
+    specific_tags=['PatientID', 'StudyDate']  # 필요한 태그만 추출
+)
 ```
 
 ---
 
-### img load
+### DICOM 이미지 배열 로드 및 시각화
 
 ```python
 import os
@@ -65,25 +81,20 @@ import pydicom
 import matplotlib.pyplot as plt
 
 def display_dicom_images(dcm_folder):
-    # 리스트에 dcm 파일들을 저장
+    # DICOM(.dcm) 파일 목록 추출
     dcm_files = [f for f in os.listdir(dcm_folder) if f.endswith(".dcm")]
 
-    # 모든 DICOM 파일에 대해 루프
+    # 모든 DICOM 파일 반복
     for dcm_file in dcm_files:
-        # DICOM 파일 경로 생성
         dcm_path = os.path.join(dcm_folder, dcm_file)
-
-        # Pydicom을 사용하여 DICOM 파일 읽기
         dicom = pydicom.dcmread(dcm_path)
+        image_array = dicom.pixel_array  # 픽셀값 추출
 
-        # DICOM 이미지 추출
-        image_array = dicom.pixel_array
-
-        # 이미지 출력
         plt.imshow(image_array, cmap='gray')
         plt.title(f"DICOM Image: {dcm_file}")
+        plt.axis('off')
         plt.show()
 
-folder_path = 'path'
+folder_path = 'path/to/dicom_folder'
 display_dicom_images(folder_path)
 ```

@@ -1,3 +1,11 @@
+---
+title: "Nibabel: NIfTI/의료영상 파일 파이썬 처리 가이드"
+date: 2026-04-02
+description: Python의 Nibabel 패키지를 활용하여 NIfTI 등 의료영상 파일을 읽고, 메타데이터 및 Affine 행렬 탐색, 이미지를 처리하는 실전 예제와 팁 안내
+categories: [python]
+tags: [nifti, nibabel, 의료영상, medical imaging, 파이썬, 이미지분석]
+---
+
 <aside>
 💡 **NiftTI** format: 헤더+3D array로 구성되며 dicom 이미지 프레임을 합친 것
 

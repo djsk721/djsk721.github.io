@@ -1,6 +1,6 @@
 ---
 title: "OpenAI Batch API 활용 가이드 (채팅/번역/분석)"
-date: 2026-04-10
+date: 2026-04-03
 description: OpenAI API의 대용량 배치(chat/completions) 처리 실전 가이드. 파일 업로드, 배치 생성, 결과 조회까지 단계별 실습 예제 포함.
 categories: [python]
 tags: [openai, api, batch, 파이썬, 번역, 자동화, 분석, 대량처리]
