@@ -1,6 +1,6 @@
 # Jekyll Config for Minimalist Blog
-title: djsk721's Blog
-description: Pure, fast, and minimalist blog on GitHub Pages
+title: 개발자 김정현의 블로그
+description: 개발자 김정현의 블로그입니다.
 baseurl: ""
 url: "https://djsk721.github.io"
 
