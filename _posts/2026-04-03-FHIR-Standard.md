@@ -2,7 +2,7 @@
 title: "FHIR(의료정보 교환 표준) 실전 정리 및 활용 가이드"
 date: 2026-04-03
 description: FHIR(Fast Healthcare Interoperability Resources) 표준의 개념, 주요 리소스, 국내 적용시 참고사항, 예시 API 활용, 오픈테스트서버, 보안 이슈까지 실무 관점에서 정리
-categories: [data]
+categories: [medical]
 tags: [fhir, 의료정보, hl7, interoperability, api, healthcare, 표준]
 ---
 
