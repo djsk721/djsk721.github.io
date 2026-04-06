@@ -36,6 +36,54 @@ ALTER USER jhkim WITH PASSWORD '새비밀번호';
 - **스키마**: public만 테이블 생성가능하도록 부여  
   (mimiciv-1.0, mimiciv-2.0, eicu 등에도 동일 원칙 적용)
 
+
+---
+
+## 3. 데이터 디렉토리 위치 변경(마이그레이션)
+
+데이터베이스 실제 파일 경로를 별도의 디렉터리(예: `/home/db/main`)로 이동하는 과정입니다.
+
+###  데이터 이동
+
+```bash
+sudo systemctl stop postgresql
+sudo mv /var/lib/postgresql/18/main /home/db/main
+```
+
+### 권한 설정 (핵심)
+
+```bash
+sudo chown -R postgres:postgres /home/db/main
+sudo chmod 700 /home/db/main
+sudo chmod 750 /home/db
+```
+
+### 설정 변경
+
+```bash
+sudo nano /etc/postgresql/18/main/postgresql.conf
+```
+
+- 파일 내에서 아래 항목을 수정 또는 추가:
+
+```
+data_directory = '/home/db/main'
+```
+
+> 변경 후, PostgreSQL을 재시작하여 정상작동하는지 반드시 확인하세요!
+> 
+> ```bash
+> sudo systemctl start postgresql
+> sudo systemctl status postgresql
+> ```
+> 
+> 
+> 에러 발생 시 로그(`/var/log/postgresql/postgresql-18-main.log`) 확인
+
+---
+
+
+
 ### 권한 제거
 
 ```sql

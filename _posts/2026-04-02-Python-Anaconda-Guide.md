@@ -48,20 +48,8 @@ sudo adduser [유저명] [그룹명]
 - (예시) `/home/{Path}/anaconda3`에 설치된 경우, 아래 코드를 `.bashrc` 하단에 추가
 
 ```bash
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/home/{Path}/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup";
-else
-    if [ -f "/home/{Path}/anaconda3/etc/profile.d/conda.sh" ]; then
-        . "/home/{Path}/anaconda3/etc/profile.d/conda.sh"
-    else
-        export PATH="/home/{Path}/anaconda3/bin:$PATH"
-    fi
-fi
-unset __conda_setup
-# <<< conda initialize <<<
+export PATH="/home/{Path}/anaconda3/bin:$PATH"
+
 ```
 
 - 적용 후 파일을 실행하여 반영
