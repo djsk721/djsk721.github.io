@@ -84,90 +84,87 @@ data_directory = '/home/db/main'
 
 
 
-### 권한 제거
+### 권한 자동화 부여 예시
 
 ```sql
-REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA "[스키마이름]" FROM readonly_user, master_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA "[스키마이름]" REVOKE ALL PRIVILEGES ON TABLES FROM readonly_user, master_user;
-REVOKE ALL PRIVILEGES ON SCHEMA "[스키마이름]" FROM readonly_user, master_user;
-
-REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM readonly_user, master_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL PRIVILEGES ON TABLES FROM readonly_user, master_user;
-REVOKE ALL PRIVILEGES ON SCHEMA public FROM readonly_user, master_user;
-
-REVOKE CONNECT ON DATABASE "[DB이름]" FROM readonly_user, master_user;
-```
-
-### 기존 롤 삭제 (필요 시)
-
-```sql
-DROP ROLE IF EXISTS readonly_user, master_user;
-```
-
-### 롤/유저 생성 및 권한 부여
-
-```sql
--- Role 생성
+-- 1. readonly_role, master_role 생성
 CREATE ROLE readonly_role;
-CREATE ROLE master_role;
+CREATE ROLE master;
 
--- 유저 생성 (이름 예시)
-CREATE ROLE jhkim WITH LOGIN PASSWORD 'test';
--- 역할 할당
-GRANT readonly_role TO jhkim;
+-- (유저 생성 및 역할 할당은 상황에 맞게 별도 수행. 예시 생략)
 
--- DB 접속 권한
-GRANT CONNECT ON DATABASE "[DB이름]" TO readonly_role, master_role;
+-- 2. DB 접속 권한 부여
+GRANT CONNECT ON DATABASE "DB_name" TO readonly_role, master;
 
--- 스키마(예: public) 접근 및 권한
-GRANT USAGE ON SCHEMA public TO readonly_role, master_role;
-GRANT ALL PRIVILEGES ON SCHEMA public TO master_role;
+-- 3. 모든 스키마에 master/readonly_role 권한 자동 부여
 
--- mimiciv-1.0, mimiciv-2.0, eicu 스키마 동일 방식 적용
+DO $$
+DECLARE
+    sch TEXT;
+BEGIN
+    FOR sch IN SELECT nspname FROM pg_namespace WHERE nspname NOT LIKE 'pg_%' AND nspname != 'information_schema'
+    LOOP
+        -- master: 모든 스키마 권한
+        EXECUTE format('GRANT ALL ON SCHEMA %I TO master', sch);
 
--- 테이블 권한
-GRANT SELECT ON ALL TABLES IN SCHEMA "[스키마이름]" TO readonly_role;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA "[스키마이름]" TO master_role;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO master_role;
+        -- readonly_role: 스키마 접근만
+        EXECUTE format('GRANT USAGE ON SCHEMA %I TO readonly_role', sch);
+    END LOOP;
+END
+$$;
 
--- 향후 생성 테이블 권한 부여
-ALTER DEFAULT PRIVILEGES IN SCHEMA "[스키마이름]" GRANT SELECT ON TABLES TO readonly_role;
-ALTER DEFAULT PRIVILEGES IN SCHEMA "[스키마이름]" GRANT ALL PRIVILEGES ON TABLES TO master_role;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO master_role;
+-- 4. 모든 스키마 내 테이블/시퀀스 자동 권한 부여
+DO $$
+DECLARE
+    sch TEXT;
+BEGIN
+    FOR sch IN SELECT nspname FROM pg_namespace WHERE nspname NOT LIKE 'pg_%' AND nspname != 'information_schema'
+    LOOP
+        -- master: 모든 테이블/시퀀스에 모든 권한
+        EXECUTE format('GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA %I TO master', sch);
+        EXECUTE format('GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA %I TO master', sch);
 
--- 특정 권한 수동 부여/회수 예시
-GRANT "[권한이름]" TO "[부여대상]";
-REVOKE "[권한이름]" FROM "[대상]";
+        -- readonly_role: SELECT만
+        EXECUTE format('GRANT SELECT ON ALL TABLES IN SCHEMA %I TO readonly_role', sch);
+        EXECUTE format('GRANT SELECT ON ALL SEQUENCES IN SCHEMA %I TO readonly_role', sch);
+    END LOOP;
+END
+$$;
+
+-- 5. 향후 생성되는 테이블 권한 (public 예시, 필요시 반복 적용)
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO master, readonly_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO master;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO readonly_role;
 ```
 
-> ⚠️ 롤/계정/암호/DB/스키마명은 반드시 사내 정책에 따라 변경하여 사용하세요.  
-> 예시 암호, 계정명, IP는 절대 실서비스에 노출하지 말 것.
+> ⚠️ 롤/계정/암호/DB/스키마명 등은 반드시 사내 정책에 맞게 사용하세요.  
+> 예시 암호, 계정명, DB명, IP 등은 실서비스에 노출 금지.
 
 ---
 
 ## 3. 외부 접속 허용 및 확인
 
-- `pg_hba.conf` 파일에서 외부 IP 접속 허용 필요 (DB 설정 담당자와 협의)
+- `pg_hba.conf` 파일에서 외부 IP 접속 허용 필요 (DB 설정 담당자와 협의 필요)
 - 방화벽, 공유기 포트포워딩, PostgreSQL 포트(기본 5432) 허용 설정 필요  
-  (실제 IP, 포트는 사내 가이드 및 보안 원칙에 따라 별도 지정)
+  (IP, 포트번호 등은 사내 가이드 및 보안 정책 따름)
 
 ### CLI 접속 예시 (개인정보/내부정보 미노출)
 
 ```sh
 psql -h [host] -p [port] -U [user] -d [database]
 ```
-- `[host]`, `[port]`, `[user]`, `[database]`는 개별 생성 정보 사용
+- `[host]`, `[port]`, `[user]`, `[database]`는 개인별로 지정한 정보 사용
 
 ---
 
 ## 4. DBeaver 접속 설정 예시
 
-- Host: _(내부/외부 IP는 내부문서 별도 참조, 미노출)_
-- Port: _(default 5432, 포트포워딩 시 정책에 따른 포트 사용)_
-- Database: mimiciv-2.2, mimiciv-1.0, eicu, mimiciv-2.2-ed 등
-- Username/Password: 개별 생성 정보에 따라 입력
+- Host: _(내부/외부 IP 등은 별도 내부문서 참고)_
+- Port: _(기본 5432, 포트포워딩 등 정책에 따라 별도 지정)_
+- Database: mimiciv-2.2, mimiciv-1.0, eicu 등
+- Username/Password: 개별 생성 정보 입력
 
-> **실제 계정, IP, 암호 등 정보가 외부에 유출되지 않도록 반드시 주의하세요.**
+> **실제 계정, IP, 패스워드 등 민감정보 유출 주의**
 
 ---
 
@@ -183,11 +180,11 @@ GRANT CONNECT ON DATABASE "[데이터베이스명]" TO "[유저이름 또는 롤
 -- 스키마 접근 권한
 GRANT USAGE ON SCHEMA "[스키마명]" TO "[유저이름 또는 롤]";
 
--- 테이블에 대한 권한 부여
+-- 테이블 권한 (필요에 따라 선택)
 GRANT SELECT ON ALL TABLES IN SCHEMA "[스키마명]" TO "[유저이름 또는 롤]";
-GRANT INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA "[스키마명]" TO "[유저이름 또는 롤]";  -- 필요에 따라 선택
+GRANT INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA "[스키마명]" TO "[유저이름 또는 롤]";
 
--- 향후 생성테이블 일괄 권한
+-- 향후 생성 테이블 권한 자동 부여
 ALTER DEFAULT PRIVILEGES IN SCHEMA "[스키마명]" GRANT SELECT ON TABLES TO "[유저이름 또는 롤]";
 ```
 

@@ -5,3 +5,7 @@ vendor/
 .bundle-home/
 .sisyphus/
 .DS_Store
+_posts/2026-04-03-Paper-Review-RAG.md
+_posts/2026-04-03-Project-MIMIC-TO-FHIR.md
+_posts/2026-04-06-Docker-environment.md
+.gitignore
