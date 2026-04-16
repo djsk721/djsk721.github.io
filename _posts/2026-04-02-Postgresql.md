@@ -91,7 +91,8 @@ data_directory = '/home/db/main'
 CREATE ROLE readonly_role;
 CREATE ROLE master;
 
--- (유저 생성 및 역할 할당은 상황에 맞게 별도 수행. 예시 생략)
+-- 유저 생성 (이름 예시)
+CREATE ROLE jhkim WITH LOGIN PASSWORD 'test';
 
 -- 2. DB 접속 권한 부여
 GRANT CONNECT ON DATABASE "DB_name" TO readonly_role, master;
