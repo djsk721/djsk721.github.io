@@ -35,18 +35,18 @@ RAG는 이를 **파라미터 지식(parametric memory)** 과 **비파라미터 �
 
 RAG의 주요 구성 요소:
 
-- **Retriever**: 입력 \(x\)를 쿼리로 사용해 외부 문서 집합에서 관련 문서 \(z\) 검색하며, 논문 기준 DPR(Dense Passage Retrieval) 사용
-- **Generator**: 입력 \(x\)와 검색 문서 \(z\)를 함께 조건으로 받아 출력 시퀀스 \(y\) 생성하며, 논문 기준 BART 계열 seq2seq 모델 사용
+- **Retriever**: 입력 $x$를 쿼리로 사용해 외부 문서 집합에서 관련 문서 $z$ 검색하며, 논문 기준 DPR(Dense Passage Retrieval) 사용
+- **Generator**: 입력 $x$와 검색 문서 $z$를 함께 조건으로 받아 출력 시퀀스 $y$ 생성하며, 논문 기준 BART 계열 seq2seq 모델 사용
 
 검색기의 경우 FAISS 기반 최대 내적 검색(Maximum Inner Product Search)로 대규모 문서 인덱스에서 신속히 top-k 문서 검색 수행하며 학습 시 문서 인코더 및 문서 인덱스 고정, 쿼리 인코더와 생성기 동시 미세조정.
 
 ### 주요 수식
 
-RAG는 검색된 문서를 잠재변수 \(z\)로 간주하고, 해당 문서에 대해 생성 확률 주변화(marginalization) 수행한다. 실제로는 retriever가 후보로 제공한 top-k 문서만 사용.
+RAG는 검색된 문서를 잠재변수 $z$로 간주하고, 해당 문서에 대해 생성 확률 주변화(marginalization) 수행한다. 실제로는 retriever가 후보로 제공한 top-k 문서만 사용.
 
 #### RAG-Sequence
 
-RAG-Sequence는 출력 시퀀스 전체가 단일 문서 \(z\)에 의해 조건화된다고 가정.
+RAG-Sequence는 출력 시퀀스 전체가 단일 문서 $z$에 의해 조건화된다고 가정.
 
 $$
 p_{\text{RAG-Sequence}}(y \mid x)
@@ -57,7 +57,8 @@ p_{\text{RAG-Sequence}}(y \mid x)
 $$
 
 
-여기서 \(\tilde{p}_\eta(z \mid x)\)는 top-k 문서 집합 내 재정규화 검색 확률임. 본 수식 간단 버전은 다음과 같음.
+여기서 $\tilde{p}_\eta(z \mid x)$는 top-k 문서 집합 안에서 확률합이 1이 되도록 재정규화한 검색 확률을 뜻한다. 아래는 해당 수식의 단순화된 형태이다.
+
 
 $$
 p_{\text{RAG-Sequence}}(y \mid x)
@@ -88,12 +89,12 @@ RAG-Token 경우, 토큰별로 서로 다른 문서 정보 활용 가능하기�
 
 ## 3. 훈련 및 최적화 방식
 
-RAG의 학습 목표: 정답 시퀀스 \(y\)의 주변 로그우도(marginal log-likelihood) 최대화. 실제 학습 과정에서는 음의 로그우도 최소화.
+RAG의 학습 목표: 정답 시퀀스 $y$의 주변 로그우도(marginal log-likelihood) 최대화. 실제 학습 과정에서는 음의 로그우도 최소화.
 
 - 정답 문서 직접 supervision 없이도, 정답 생성에 도움이 되는 문서를 retriever가 더 높은 확률로 선택하도록 학습 진행
 - 생성기와 retriever 쿼리 인코더 end-to-end 동시 미세조정
 - 문서 인코더와 FAISS 인덱스 고정, 전체 문서 인덱스 재구축 불필요
-- top-k 문서 수 \(k\)는 성능과 비용 사이 trade-off 초래하는 주요 하이퍼파라미터
+- top-k 문서 수 $k$는 성능과 비용 사이 trade-off 초래하는 주요 하이퍼파라미터
 
 ---
 
