@@ -1,20 +1,29 @@
 ---
-title: "지식 집약적 자연어 처리 태스크를 위한 검색 증강 생성(RAG) 논문 리뷰"
+title: "RAG 논문 리뷰: Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks"
 date: 2026-04-28
-description: Facebook AI Research와 University College London의 RAG(Retrieval-Augmented Generation) 논문(2021.04.13) 심층 요약 및 주요 기술 해설
+description: RAG(Retrieval-Augmented Generation)의 핵심 아이디어, 수식, RAG-Sequence와 RAG-Token 차이, 실험 결과와 한계를 정리한 논문 리뷰
 categories: [paperreview]
 tags: [RAG, 검색증강, LLM, 자연어처리, 논문리뷰, knowledge-intensive, 답변생성]
 ---
 
 ## 논문 개요
 
-이 논문은 Facebook AI Research와 University College London이 공동 연구한 ‘검색 증강 생성(Retrieval Augmented Generation, RAG)’ 모델을 다룹니다. 저자(주저자 Patrick Lewis 외)는 사전학습 기반 언어 생성기와 외부 지식 검색기를 결합해 다양한 지식 집약적 자연어 처리(NLP) 태스크에서 강력한 성능을 달성하는 범용 아키텍처를 제시합니다. 특히, 문서 인덱스 핫스왑만으로 지식 업데이트가 가능한 점과 향상된 사실적 정확성을 입증하였습니다.
+이 글은 Patrick Lewis et al.의 **Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks** 논문 정리 리뷰로써, 본 논문은 Facebook AI Research와 University College London 연구진의 RAG(Retrieval-Augmented Generation) 모델 제안
+
+RAG의 핵심 아이디어는 언어 모델이 파라미터 내 지식만으로 답변하지 않고, 외부 문서 집합에서 관련 문서 검색 후 해당 문서를 조건으로 답변 생성하는 방식. 이로써 모델은 더 사실적인 답변 생성 가능, 지식 변경 시 모델 전체 재학습 없이 문서 인덱스 교체만으로 최신 정보 반영 가능함.
 
 ---
 
 ## 1. 핵심 문제의식
 
-기존 대규모 언어 모델은 파라미터 내 암묵적 지식만을 활용해 답변을 생성하는 한계가 있습니다. 이로 인해 실제적 지식 업데이트가 어렵고, 환각(hallucination)이나 해석 불가 등의 문제가 빈번히 발생합니다. 논문에서는 이러한 한계를 극복하기 위해 외부 지식 기반(비파라미터적) 검색 증강 접근법을 도입합니다.
+기존 사전학습 언어 모델의 경우 많은 지식은 파라미터 내부에 암묵적 저장 방식이다. 하지만만 이 방식에서 발생하는 한계:
+
+- 학습 이후 새 지식 반영 한계
+- 답변 근거 문서 추적 한계
+- 그럴듯하지만 사실과 다른 답변 생성(환각 hallucination 현상) 발생 가능성
+- 지식 업데이트를 위한 대규모 재학습 또는 추가 학습 필요
+
+RAG는 이를 **파라미터 지식(parametric memory)** 과 **비파라미터 지식(non-parametric memory)** 결합으로 해결하였다. 비파라미터 지식의 경우 위키피디아 등 외부 문서 집합과 검색 인덱스 의미함함
 
 ---
 
@@ -22,42 +31,80 @@ tags: [RAG, 검색증강, LLM, 자연어처리, 논문리뷰, knowledge-intensiv
 
 ![구조](https://paper-assets.alphaxiv.org/figures/2005.11401v4/img-0.jpeg)
 
+### 하이브리드 구성
 
-### ● 하이브리드 구성
-- **검색기**: Dense Passage Retrieval(DPR, 쿼리/문서별 BERT 인코더 사용) 기반, 대규모 지식코퍼스(2100만 위키피디아 단락)에서 관련 문서 검색
-- **생성기**: BART-large와 같은 사전학습 시퀀스-투-시퀀스 생성 모델, 입력 쿼리와 검색된 문서를 통합해 최종 답변 생성
-- 두 구성요소를 종단간(end-to-end) 방식으로 훈련
+RAG의 주요 구성 요소:
 
-### ● 주요 수식
-- **RAG-Sequence**: 시퀀스 전체가 단일 문서에 의해 영향 받음
-  $$
-  p_{RAG-Sequence}(y|x) \approx \sum_{z \in \text{top-k}(p(\cdot|x))} p_\eta(z|x)p_\theta(y|x,z)
-  $$
-- **RAG-Token**: 각 토큰이 서로 다른 문서에 영향 받아, 다수 소스 합성 가능
-  $$
-  p_{RAG-Token}(y|x) \approx \prod_i \sum_{z \in \text{top-k}(p(\cdot|x))} p_\eta(z|x)p_\theta(y_i|x,z,y_{1:i-1})
-  $$
-- 검색기는 FAISS 인덱스 기반 최대 내적 검색으로 빠른 문서 검색 지원
-- 훈련 시 문서 인코더/인덱스는 고정, 쿼리 인코더만 생성기와 함께 미세조정
+- **Retriever**: 입력 \(x\)를 쿼리로 사용해 외부 문서 집합에서 관련 문서 \(z\) 검색하며, 논문 기준 DPR(Dense Passage Retrieval) 사용
+- **Generator**: 입력 \(x\)와 검색 문서 \(z\)를 함께 조건으로 받아 출력 시퀀스 \(y\) 생성하며, 논문 기준 BART 계열 seq2seq 모델 사용
+
+검색기의 경우 FAISS 기반 최대 내적 검색(Maximum Inner Product Search)로 대규모 문서 인덱스에서 신속히 top-k 문서 검색 수행하며 학습 시 문서 인코더 및 문서 인덱스 고정, 쿼리 인코더와 생성기 동시 미세조정.
+
+### 주요 수식
+
+RAG는 검색된 문서를 잠재변수 \(z\)로 간주하고, 해당 문서에 대해 생성 확률 주변화(marginalization) 수행한다. 실제로는 retriever가 후보로 제공한 top-k 문서만 사용.
+
+#### RAG-Sequence
+
+RAG-Sequence는 출력 시퀀스 전체가 단일 문서 \(z\)에 의해 조건화된다고 가정.
+
+$$
+p_{\text{RAG-Sequence}}(y|x)
+\approx
+\sum_{z \in \text{top-k}(p_\eta(\cdot|x))}
+\tilde{p}_\eta(z|x)
+\prod_{i=1}^{N} p_\theta(y_i | x, z, y_{<i})
+$$
+
+여기서 \(\tilde{p}_\eta(z|x)\)는 top-k 문서 집합 내 재정규화 검색 확률임. 본 수식 간단 버전은 다음과 같음.
+
+$$
+p_{\text{RAG-Sequence}}(y|x)
+\approx
+\sum_{z}
+\tilde{p}_\eta(z|x)
+p_\theta(y|x,z)
+$$
+
+즉, 하나의 후보 문서가 전체 답변 생성에 일관된 영향을 미침
+
+#### RAG-Token
+
+RAG-Token은 각 토큰 생성마다 문서에 대한 주변화 진행
+
+$$
+p_{\text{RAG-Token}}(y|x)
+\approx
+\prod_{i=1}^{N}
+\sum_{z \in \text{top-k}(p_\eta(\cdot|x))}
+\tilde{p}_\eta(z|x)
+p_\theta(y_i | x, z, y_{<i})
+$$
+
+RAG-Token 경우, 토큰별로 서로 다른 문서 정보 활용 가능하기에 여러 문서의 근거 혼합으로 더욱 유연한 답변이 가능한 반면, 계산량과 구현 복잡도 측면에서 RAG-Sequence보다 증가함함
 
 ---
 
 ## 3. 훈련 및 최적화 방식
 
-- 손실함수: 음의 주변 로그우도 최대화(End-to-end Joint Optimization)
-- 슈퍼비전 없이 관련 구절을 암묵적으로 식별하는 비지도 검색 학습
-- 하이퍼파라미터 k(검색 문서 수)는 일반적으로 5~50, 개발셋 기반
-- Adam 기반 경사하강법, 생성기-검색기 쿼리 인코더 공동 최적화
+RAG의 학습 목표: 정답 시퀀스 \(y\)의 주변 로그우도(marginal log-likelihood) 최대화. 실제 학습 과정에서는 음의 로그우도 최소화.
+
+- 정답 문서 직접 supervision 없이도, 정답 생성에 도움이 되는 문서를 retriever가 더 높은 확률로 선택하도록 학습 진행
+- 생성기와 retriever 쿼리 인코더 end-to-end 동시 미세조정
+- 문서 인코더와 FAISS 인덱스 고정, 전체 문서 인덱스 재구축 불필요
+- top-k 문서 수 \(k\)는 성능과 비용 사이 trade-off 초래하는 주요 하이퍼파라미터
 
 ---
 
 ## 4. 실험 결과 및 성능
 
-- **오픈 도메인 QA**: Natural Questions, WebQuestions, CuratedTrec 등에서 T5-11B(매개변수 기반), REALM/DPR(추출형 모델) 대비 새로운 SOTA 달성
-- **답변 합성**: 정답이 검색 문서에 명시적으로 없는 경우에도 옳은 답변 생성 (추출기 불가 상황에서 11.8% 정확도 확보)
-- **MS-MARCO NLG**: RAG는 BART 대비 BLEU/Rouge-L 각각 +2.6p 향상
-- **사실성/특이성 인간평가**: BART보다 사실 정확도(42.7% vs 7.1%), 특이성(37.4% vs 16.8%) 우위
-- **지식 업데이트 실험**: 위키 문서 인덱스 변경만으로 모델의 최신성/정확도 즉시 향상
+논문상 RAG 평가 대상: 다양한 지식 집약형 NLP 태스크
+
+- **Open-domain QA**: Natural Questions, WebQuestions, CuratedTREC 등에서 강한 성능 확인
+- **Abstractive QA**: 정답이 특정 문장에 명시적 존재하지 않은 경우에도 검색 문서 기반 답변 생성 가능
+- **MS MARCO NLG**: BART 기반 생성 모델 대비 더 나은 BLEU, ROUGE-L 점수 확인
+- **사실성 평가**: 사람 평가 기준 RAG는 BART-only 모델 대비 더 구체적·사실적 답변 경향
+- **지식 업데이트**: 모델 파라미터 재학습 없이 문서 인덱스 교체만으로 지식 갱신 가능성 확인
 
 ![result](https://paper-assets.alphaxiv.org/figures/2005.11401v4/img-2.jpeg)
 
@@ -65,30 +112,38 @@ tags: [RAG, 검색증강, LLM, 자연어처리, 논문리뷰, knowledge-intensiv
 
 ## 5. 해석 가능성 및 지식 업데이트
 
-- 외부 검색 메커니즘 도입으로 각 답변의 근거(문서/근거 URI 등) 추적 가능
-- 위키피디아 인덱스를 교체(갱신)하는 것만으로 재학습 없는 지식 최신화 ('hot swapping' 실증)
-- 투명성/설명가능성이 중요한 의료, 교육 분야 등에서 응용 유리
+RAG의 주요 장점: 답변 근거 추적 가능성 보유할 수 있으며 생성 결과가 어떤 검색 문서 조건에서 생성됐는지 확인 가능, 순수 생성 모델 대비 해석 가능성 강화
+
+문서 인덱스 교체 방식으로 지식 갱신 가능하며, 논문에서는 **index hot-swapping**으로 용어화. 의료, 법률, 교육 등 최신성과 근거 확인 요구 영역에서 유용성 높음.
 
 ![result](https://paper-assets.alphaxiv.org/figures/2005.11401v4/img-1.jpeg)
+
 ---
 
 ## 6. 한계 및 시사점
 
-- 외부 지식코퍼스의 편향·품질에 모델 성능이 직접적으로 의존(공정성/사실성 challenge)
-- 잠재적으로 잘못된/오해 유발 정보 생성 가능성 역시 내재
-- 저자들은 실제 응용 확대에 따른 책임 있는 개발·배포 필요성 강조
+RAG의 강점과 한계:
+
+- 검색 대상 코퍼스 품질 저하 시 생성 결과 동반 저하 우려
+- retriever가 부정확 문서 검색 시 generator가 해당 문서 근거로 그럴듯한 오답 생성 가능성
+- 답변 근거 문서 존재만으로 항상 답변이 사실임을 의미하지 않음
+- 검색 인덱스 구축과 유지보수 관련 비용 추가 발생
+- 민감 도메인에서는 검색 문서 접근권한, 개인정보, 보안 등 이슈 중요
+
+즉, RAG는 환각 완전 제거 기술이 아닌, 외부 근거 활용을 통한 사실성·업데이트 가능성 개선 프레임워크로 이해하는 것이 적절함
 
 ---
 
 ## 7. 결론 및 미래 전망
 
-- RAG는 파라미터/비파라미터 지식 결합 기반의 새로운 NLP 패러다임을 제시
-- 다양한 지식 태스크에 광범위한 적용 및 효율성(모델 크기 대비 성능 증가) 실증
-- 향후 외부 코퍼스 관리/감독 및 Responsible AI 측면에서의 활용 기준 정립 필요
+RAG: 파라미터 기반 언어 모델과 외부 검색 시스템 결합 대표 아키텍처로써 논문 발표 이후 QA, 챗봇, 문서 검색, 의료·법률 보조 시스템, 기업 지식베이스 응답 시스템 등 광범위 확장 진행됨
+
+논문 의의: 단순한 검색 결과 프롬프트 첨부 방식을 넘어, 검색 문서를 잠재변수로 두고 생성 확률 주변화라는 모델링 관점 제시하였음. 실무 RAG 시스템은 논문 원형과 다소 차이 발생하나, “외부 지식 검색 + 조건부 생성” 기본 아이디어는 여전히 핵심 위치 유지
 
 ---
 
 ### 참고 논문:  
-- [Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks, Patrick Lewis et al., 2021 (Facebook AI, UCL)](https://arxiv.org/abs/2005.11401)
+
+- [Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks, Patrick Lewis et al.](https://arxiv.org/abs/2005.11401)
 
 ---
