@@ -23,7 +23,7 @@ RAG의 핵심 아이디어는 언어 모델이 파라미터 내 지식만으로 
 - 그럴듯하지만 사실과 다른 답변 생성(환각 hallucination 현상) 발생 가능성
 - 지식 업데이트를 위한 대규모 재학습 또는 추가 학습 필요
 
-RAG는 이를 **파라미터 지식(parametric memory)** 과 **비파라미터 지식(non-parametric memory)** 결합으로 해결하였다. 비파라미터 지식의 경우 위키피디아 등 외부 문서 집합과 검색 인덱스 의미함함
+RAG는 이를 **파라미터 지식(parametric memory)** 과 **비파라미터 지식(non-parametric memory)** 결합으로 해결하였다. 비파라미터 지식의 경우 위키피디아 등 외부 문서 집합과 검색 인덱스 의미함
 
 ---
 
@@ -49,21 +49,22 @@ RAG는 검색된 문서를 잠재변수 \(z\)로 간주하고, 해당 문서에 
 RAG-Sequence는 출력 시퀀스 전체가 단일 문서 \(z\)에 의해 조건화된다고 가정.
 
 $$
-p_{\text{RAG-Sequence}}(y|x)
+p_{\text{RAG-Sequence}}(y \mid x)
 \approx
-\sum_{z \in \text{top-k}(p_\eta(\cdot|x))}
-\tilde{p}_\eta(z|x)
-\prod_{i=1}^{N} p_\theta(y_i | x, z, y_{<i})
+\sum_{z \in \text{top-k}(p_\eta(\cdot \mid x))}
+\tilde{p}_\eta(z \mid x)
+\prod_{i=1}^{N} p_\theta(y_i \mid x, z, y_{<i})
 $$
 
-여기서 \(\tilde{p}_\eta(z|x)\)는 top-k 문서 집합 내 재정규화 검색 확률임. 본 수식 간단 버전은 다음과 같음.
+
+여기서 \(\tilde{p}_\eta(z \mid x)\)는 top-k 문서 집합 내 재정규화 검색 확률임. 본 수식 간단 버전은 다음과 같음.
 
 $$
-p_{\text{RAG-Sequence}}(y|x)
+p_{\text{RAG-Sequence}}(y \mid x)
 \approx
 \sum_{z}
-\tilde{p}_\eta(z|x)
-p_\theta(y|x,z)
+\tilde{p}_\eta(z \mid x)
+p_\theta(y \mid x,z)
 $$
 
 즉, 하나의 후보 문서가 전체 답변 생성에 일관된 영향을 미침
@@ -73,15 +74,15 @@ $$
 RAG-Token은 각 토큰 생성마다 문서에 대한 주변화 진행
 
 $$
-p_{\text{RAG-Token}}(y|x)
+p_{\text{RAG-Token}}(y \mid x)
 \approx
 \prod_{i=1}^{N}
-\sum_{z \in \text{top-k}(p_\eta(\cdot|x))}
-\tilde{p}_\eta(z|x)
-p_\theta(y_i | x, z, y_{<i})
+\sum_{z \in \text{top-k}(p_\eta(\cdot \mid x))}
+\tilde{p}_\eta(z \mid x)
+p_\theta(y_i \mid x, z, y_{<i})
 $$
 
-RAG-Token 경우, 토큰별로 서로 다른 문서 정보 활용 가능하기에 여러 문서의 근거 혼합으로 더욱 유연한 답변이 가능한 반면, 계산량과 구현 복잡도 측면에서 RAG-Sequence보다 증가함함
+RAG-Token 경우, 토큰별로 서로 다른 문서 정보 활용 가능하기에 여러 문서의 근거 혼합으로 더욱 유연한 답변이 가능한 반면, 계산량과 구현 복잡도 측면에서 RAG-Sequence보다 증가함
 
 ---
 
