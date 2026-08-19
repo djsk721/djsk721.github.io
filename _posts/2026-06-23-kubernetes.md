@@ -1,7 +1,7 @@
 ---
 title: "쿠버네티스(Kubernetes, K8s) 개념과 핵심 구성 요소 정리"
 date: 2026-06-23
-categories: [devops]
+categories: [MLOps]
 tags: [kubernetes, k8s, container, docker, devops, cloud-native]
 ---
 

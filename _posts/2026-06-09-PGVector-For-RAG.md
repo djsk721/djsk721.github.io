@@ -1,7 +1,7 @@
 ---
 title: "RAG를 위한 pgvector 실전 정리"
 date: 2026-06-09
-categories: [MLOps, VectorDB]
+categories: [MLOps]
 tags: [pgvector, postgres, rag, vector search, 벡터검색, 하이브리드, 인덱스, ANN, 실전구성]
 ---
 
