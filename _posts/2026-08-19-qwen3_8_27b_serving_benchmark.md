@@ -1,7 +1,7 @@
 ---
 title: "Qwen3.8 27B 서빙 툴별 추론 성능 비교"
 date: 2026-08-19
-categories: [AI]
+categories: [ai]
 tags: [ai]
 ---
 

@@ -4,7 +4,7 @@
     {% assign sorted_categories = site.categories | sort %}
     {% if sorted_categories.size > 0 %}
     <a href="{{ '/categories/' | relative_url }}" class="sidebar-category-link sidebar-category-link-all">
-      <span>All categories</span>
+      <span>전체 카테고리</span>
       <span class="sidebar-category-count">{{ sorted_categories | size }}</span>
     </a>
     <ul class="sidebar-category-list">
@@ -21,7 +21,7 @@
       {% endfor %}
     </ul>
     {% else %}
-    <p class="sidebar-empty">No categories yet.</p>
+    <p class="sidebar-empty">아직 카테고리가 없습니다.</p>
     {% endif %}
   </div>
 </aside>

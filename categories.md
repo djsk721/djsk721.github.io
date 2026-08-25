@@ -8,7 +8,8 @@ permalink: /categories/
 {% assign sorted_categories = site.categories | sort %}
 
 <div class="categories-archive">
-  <p class="categories-filter-status" aria-live="polite">Showing all categories.</p>
+  <p class="categories-summary">총 {{ site.posts | size }}개의 글 · {{ sorted_categories.size }}개의 카테고리</p>
+  <p class="categories-filter-status" aria-live="polite">전체 카테고리와 글을 보고 있습니다.</p>
   {% if sorted_categories.size > 0 %}
     {% for category in sorted_categories %}
       {% assign category_name = category[0] %}
@@ -17,7 +18,7 @@ permalink: /categories/
       <section class="category-section" id="{{ category_id }}" data-category-id="{{ category_id }}">
         <header class="category-section-header">
           <h2>{{ category_name }}</h2>
-          <p>{{ category_posts | size }} posts</p>
+          <p>{{ category_posts | size }}개의 글</p>
         </header>
 
         <ul class="category-post-list">
@@ -33,7 +34,7 @@ permalink: /categories/
       </section>
     {% endfor %}
   {% else %}
-    <p class="categories-empty">No categories have been added yet.</p>
+    <p class="categories-empty">아직 카테고리가 없습니다.</p>
   {% endif %}
 </div>
 
@@ -52,34 +53,37 @@ permalink: /categories/
 
   function updateFilter() {
     const activeFilter = decodeURIComponent(window.location.hash.replace(/^#/, ''));
-    let matchedCount = 0;
+    const hasMatch = Boolean(activeFilter) && sections.some(function(section) {
+      return section.dataset.categoryId === activeFilter;
+    });
+    let matchedName = '';
 
     sections.forEach(function(section) {
-      const isMatch = !activeFilter || section.dataset.categoryId === activeFilter;
+      const isMatch = !hasMatch || section.dataset.categoryId === activeFilter;
       section.hidden = !isMatch;
 
-      if (isMatch) {
-        matchedCount += 1;
+      if (isMatch && !matchedName) {
+        const heading = section.querySelector('h2');
+        matchedName = heading ? heading.textContent.trim() : activeFilter;
       }
     });
 
-    archive.classList.toggle('is-filtering', Boolean(activeFilter) && matchedCount > 0);
-    archive.dataset.activeFilter = matchedCount > 0 ? activeFilter : '';
+    archive.dataset.activeFilter = hasMatch ? activeFilter : '';
 
     if (status) {
-      if (!activeFilter || matchedCount === 0) {
-        status.textContent = 'Showing all categories.';
+      if (hasMatch) {
+        status.textContent = '「' + matchedName + '」 카테고리의 글을 보고 있습니다.';
       } else {
-        status.textContent = 'Showing category: ' + activeFilter + '.';
+        status.textContent = '전체 카테고리와 글을 보고 있습니다.';
       }
     }
 
     filterLinks.forEach(function(link) {
-      link.classList.toggle('is-active', link.dataset.categoryFilter === activeFilter && matchedCount > 0);
+      link.classList.toggle('is-active', hasMatch && link.dataset.categoryFilter === activeFilter);
     });
 
     if (allLink) {
-      allLink.classList.toggle('is-active', !activeFilter || matchedCount === 0);
+      allLink.classList.toggle('is-active', !hasMatch);
     }
   }
 

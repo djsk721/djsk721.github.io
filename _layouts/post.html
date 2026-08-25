@@ -10,10 +10,19 @@ layout: default
       <time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">
         {{ page.date | date: "%Y년 %m월 %d일" }}
       </time>
-      
-      {% if page.author %}
-      <span class="author" itemprop="author">{{ page.author }}</span>
+
+      {% if page.categories %}
+      <span class="post-meta-categories">
+        {% for category in page.categories %}
+          <a class="chip chip--category" href="{{ '/categories/' | relative_url }}#{{ category | slugify }}">{{ category }}</a>
+        {% endfor %}
+      </span>
       {% endif %}
+
+      {% assign post_words = content | number_of_words %}
+      {% assign reading_minutes = post_words | divided_by: 200 %}
+      {% if reading_minutes < 1 %}{% assign reading_minutes = 1 %}{% endif %}
+      <span class="reading-time">약 {{ reading_minutes }}분 읽기</span>
     </div>
   </header>
 
@@ -53,16 +62,48 @@ layout: default
 
 <nav class="pagination" aria-label="게시물 내비게이션">
   <div class="pagination-wrapper">
-    <a href="{{ site.baseurl }}/" class="btn btn-secondary">
-      ← 홈으로
+    {% if page.previous %}
+    <a href="{{ page.previous.url | relative_url }}" class="postnav-link postnav-link--prev" rel="prev">
+      <span class="postnav-label">← 이전 글</span>
+      <span class="postnav-title">{{ page.previous.title }}</span>
     </a>
-    
+    {% else %}
+    <div class="postnav-spacer" aria-hidden="true"></div>
+    {% endif %}
+
+    <a href="{{ '/' | relative_url }}" class="btn btn-secondary">홈</a>
+
     {% if page.next %}
-    <a href="{{ page.next.url | relative_url }}" class="btn btn-primary" rel="next">
-      다음 글: {{ page.next.title }}
+    <a href="{{ page.next.url | relative_url }}" class="postnav-link postnav-link--next" rel="next">
+      <span class="postnav-label">다음 글 →</span>
+      <span class="postnav-title">{{ page.next.title }}</span>
     </a>
+    {% else %}
+    <div class="postnav-spacer" aria-hidden="true"></div>
     {% endif %}
   </div>
 </nav>
+
+<script>
+(function() {
+  document.querySelectorAll('.post-content .highlighter-rouge[class*="language-"]').forEach(function(block) {
+    var match = block.className.match(/language-([\w-]+)/);
+    if (!match) {
+      return;
+    }
+    var target = block.querySelector('.highlight');
+    if (!target) {
+      block.classList.add('code-block--bare');
+      target = block;
+    }
+    if (!block.querySelector('.code-lang')) {
+      var label = document.createElement('span');
+      label.className = 'code-lang';
+      label.textContent = match[1];
+      target.appendChild(label);
+    }
+  });
+})();
+</script>
 
 
