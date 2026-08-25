@@ -6,3 +6,4 @@ vendor/
 .sisyphus/
 .DS_Store
 .gitignore
+.omo/
