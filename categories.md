@@ -8,8 +8,22 @@ permalink: /categories/
 {% assign sorted_categories = site.categories | sort %}
 
 <div class="categories-archive">
-  <p class="categories-summary">총 {{ site.posts | size }}개의 글 · {{ sorted_categories.size }}개의 카테고리</p>
   <p class="categories-filter-status" aria-live="polite">전체 카테고리와 글을 보고 있습니다.</p>
+
+  <div class="category-filter-bar" role="group" aria-label="카테고리 필터">
+    <button type="button" class="chip filter-chip is-active" data-cat-filter="" aria-pressed="true">
+      전체 <span class="filter-count">{{ site.posts | size }}</span>
+    </button>
+    {% for category in sorted_categories %}
+      {% assign category_name = category[0] %}
+      {% assign category_id = category_name | slugify %}
+      {% assign category_posts = category[1] %}
+      <button type="button" class="chip filter-chip" data-cat-filter="{{ category_id }}" aria-pressed="false">
+        {{ category_name }} <span class="filter-count">{{ category_posts | size }}</span>
+      </button>
+    {% endfor %}
+  </div>
+
   {% if sorted_categories.size > 0 %}
     {% for category in sorted_categories %}
       {% assign category_name = category[0] %}
@@ -40,38 +54,49 @@ permalink: /categories/
 
 <script>
 (function() {
-  const archive = document.querySelector('.categories-archive');
+  var archive = document.querySelector('.categories-archive');
 
   if (!archive) {
     return;
   }
 
-  const sections = Array.from(archive.querySelectorAll('.category-section'));
-  const status = archive.querySelector('.categories-filter-status');
-  const filterLinks = Array.from(document.querySelectorAll('[data-category-filter]'));
-  const allLink = document.querySelector('.sidebar-category-link-all');
+  var sections = Array.from(archive.querySelectorAll('.category-section'));
+  var status = archive.querySelector('.categories-filter-status');
+  var filterChips = Array.from(archive.querySelectorAll('.filter-chip'));
+  var filterLinks = Array.from(document.querySelectorAll('[data-category-filter]'));
+  var allLink = document.querySelector('.sidebar-category-link-all');
+
+  function syncChips(activeId) {
+    filterChips.forEach(function(chip) {
+      var isActive = chip.dataset.catFilter === activeId;
+      chip.classList.toggle('is-active', isActive);
+      chip.setAttribute('aria-pressed', String(isActive));
+    });
+  }
 
   function updateFilter() {
-    const activeFilter = decodeURIComponent(window.location.hash.replace(/^#/, ''));
-    const hasMatch = Boolean(activeFilter) && sections.some(function(section) {
+    var activeFilter = decodeURIComponent(window.location.hash.replace(/^#/, ''));
+    var hasMatch = Boolean(activeFilter) && sections.some(function(section) {
       return section.dataset.categoryId === activeFilter;
     });
-    let matchedName = '';
+    var activeId = hasMatch ? activeFilter : '';
+    var matchedName = '';
 
     sections.forEach(function(section) {
-      const isMatch = !hasMatch || section.dataset.categoryId === activeFilter;
+      var isMatch = !activeId || section.dataset.categoryId === activeId;
       section.hidden = !isMatch;
 
       if (isMatch && !matchedName) {
-        const heading = section.querySelector('h2');
-        matchedName = heading ? heading.textContent.trim() : activeFilter;
+        var heading = section.querySelector('h2');
+        matchedName = heading ? heading.textContent.trim() : activeId;
       }
     });
 
-    archive.dataset.activeFilter = hasMatch ? activeFilter : '';
+    archive.dataset.activeFilter = activeId;
+    syncChips(activeId);
 
     if (status) {
-      if (hasMatch) {
+      if (activeId) {
         status.textContent = '「' + matchedName + '」 카테고리의 글을 보고 있습니다.';
       } else {
         status.textContent = '전체 카테고리와 글을 보고 있습니다.';
@@ -79,15 +104,28 @@ permalink: /categories/
     }
 
     filterLinks.forEach(function(link) {
-      link.classList.toggle('is-active', hasMatch && link.dataset.categoryFilter === activeFilter);
+      link.classList.toggle('is-active', activeId && link.dataset.categoryFilter === activeId);
     });
 
     if (allLink) {
-      allLink.classList.toggle('is-active', !hasMatch);
+      allLink.classList.toggle('is-active', !activeId);
     }
   }
 
+  filterChips.forEach(function(chip) {
+    chip.addEventListener('click', function() {
+      var target = chip.dataset.catFilter;
+      if (target) {
+        window.location.hash = target;
+      } else if (window.location.hash) {
+        history.pushState(null, '', window.location.pathname);
+        updateFilter();
+      }
+    });
+  });
+
   window.addEventListener('hashchange', updateFilter);
+  window.addEventListener('popstate', updateFilter);
   updateFilter();
 })();
 </script>

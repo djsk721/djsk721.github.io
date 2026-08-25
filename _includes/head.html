@@ -2,7 +2,19 @@
 
 <meta name="description" content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}">
 <meta name="author" content="{{ site.author.name }}">
+<meta name="color-scheme" content="light dark">
 <link rel="canonical" href="{{ page.url | absolute_url }}">
+
+<script>
+(function() {
+  var theme = null;
+  try { theme = localStorage.getItem('theme'); } catch (e) {}
+  if (theme !== 'dark' && theme !== 'light') {
+    theme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', theme);
+})();
+</script>
 
 <!-- Open Graph -->
 <meta property="og:type" content="website">

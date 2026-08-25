@@ -2,123 +2,131 @@
 
 ## 1. 디자인 방향
 
-깔끔한 라이트 테마의 한국어 기술 블로그. Slate 중성색 기반 + 단일 액센트(blue #2563eb).
-시그니처 material: **라이트 페이지 위의 다크 에디터형 코드 블록** — 코드 중심 블로그의
-핵심 콘텐츠(코드)에 시각적 무게를 부여한다. 모든 값은 아래 토큰에서만 가져온다.
+**Notion · Linear · GitHub Docs처럼 정보 밀도와 가독성을 우선하는 기술 문서형 UI.**
+화려함보다 "빠르게 훑고, 찾고, 읽는다". Slate 중성색 + 단일 액센트(blue), 기본 상태는 flat —
+테두리·그림자·카드 최소화, hover에서만 subtle 피드백. 라이트/다크 모드 모두 지원하며
+다크는 pure black이 아닌 GitHub 계열 dark surface.
 
 ## 2. Color Tokens
 
-### Brand / Accent (단일 액센트 유지)
+### Light (기본)
 | Token | Value | 용도 |
 |---|---|---|
-| `--color-primary` | `#2563eb` | 링크, 활성 상태, 포인트 |
+| `--color-primary` | `#2563eb` | 링크, 활성 상태 |
 | `--color-primary-dark` | `#1d4ed8` | hover/focus |
 | `--color-primary-light` | `#3b82f6` | border highlight |
-| `--color-secondary` | `#64748b` | secondary 버튼 |
+| `--color-background` | `#ffffff` | 페이지 배경 |
+| `--color-background-alt` | `#f8fafc` | hover 배경, 인용구 |
+| `--color-surface` | `#ffffff` | (flat 원칙상 background와 동일) |
+| `--color-text` | `#1e293b` | 본문/제목 |
+| `--color-text-secondary` | `#475569` | 보조 텍스트 |
+| `--color-text-muted` | `#64748b` | 메타/날짜 |
+| `--color-border` | `#e2e8f0` | hairline 구분선 |
+| `--color-border-light` | `#f1f5f9` | 칩 테두리 |
 
-### Neutrals (slate 계열 통일 — warm/cool 혼용 금지)
+### Dark (GitHub 계열 — pure black 금지)
 | Token | Value |
 |---|---|
-| `--color-background` | `#ffffff` |
-| `--color-background-alt` | `--color-background-alt` |
-| `--color-surface` | `#ffffff` |
-| `--color-text` | `#1e293b` |
-| `--color-text-secondary` | `#475569` |
-| `--color-text-muted` | `#64748b` |
-| `--color-border` | `#e2e8f0` |
-| `--color-border-light` | `#f1f5f9` |
+| `--color-primary` | `#4493f8` (GitHub dark link blue) |
+| `--color-primary-dark` | `#6cb0ff` (hover — 다크에서는 밝아진다) |
+| `--color-background` | `#0d1117` |
+| `--color-background-alt` | `#151b23` |
+| `--color-surface` | `#161b22` |
+| `--color-text` | `#e6edf3` |
+| `--color-text-secondary` | `#b6c2cf` |
+| `--color-text-muted` | `#8b949e` |
+| `--color-border` | `#30363d` |
+| `--color-border-light` | `#21262d` |
 
-### Code Block (신규 — 다크 에디터 재질)
-| Token | Value | 용도 |
+### Code Block
+라이트: bg `#0f172a` / border `#1e293b` / text `#e2e8f0` / header `#16213b` / muted `#7c8db0`
+다크: bg `#161b22` / border `#30363d` (토큰만 교체, 구조 동일)
+Syntax (공통): keyword `#93c5fd` · string `#86efac` · number `#fbbf24` · comment `#7c8db0` · function `#c4b5fd` · operator `#94a3b8`
+인라인 코드: 라이트 bg `#f1f5f9` text `#334155` / 다크 bg `rgb(110 118 129 / .25)` text `#e6edf3`
+
+테마 스위칭: `:root` (라이트) + `html[data-theme="dark"]` 오버라이드.
+`color-scheme` 속성 함께 토글. 새 hex 추가 전 이 파일에 먼저 등록.
+
+## 3. Layout
+
+| 컨테이너 | 폭 | 용도 |
 |---|---|---|
-| `--code-bg` | `#0f172a` | 블록 배경 (slate-900) |
-| `--code-border` | `#1e293b` | 블록 테두리 |
-| `--code-text` | `#e2e8f0` | 기본 코드 텍스트 |
-| `--code-header-bg` | `#16213b` | 언어 라벨 바 배경 |
-| `--code-muted` | `#64748b` | 주석, 라인번호 |
-| Syntax (Rouge 다크 테마 매핑) | | |
-| `--syntax-keyword` | `#93c5fd` | keyword, tag |
-| `--syntax-string` | `#86efac` | string, char |
-| `--syntax-number` | `#fbbf24` | number, literal |
-| `--syntax-comment` | `#7c8db0` | comment |
-| `--syntax-function` | `#c4b5fd` | function/name |
-| `--syntax-operator` | `#94a3b8` | operator, punctuation |
-| 인라인 코드 | bg `#f1f5f9`, text `#334155`, border `#e2e8f0` | 라이트 유지 |
+| `--width-home` | `76rem` (1216px) | 홈/카테고리 등 목록 페이지 (사이드바 + 리스트) |
+| `--width-post` | `46rem` (736px) | 게시글 본문 열 |
+| `--width-toc` | `15rem` (240px) | 본문 우측 TOC 열 (≥1200px만) |
 
-규칙: 코드 블록 내 파스텔 syntax 색상은 다크 배경 위 대비 ≥ 4.5:1만 사용.
-이 밖의 새로운 hex 추가 금지 — 필요하면 먼저 이 파일에 토큰을 추가.
+- 헤더 내부도 `--width-home` 정렬
+- 포스트 페이지: 좌측 카테고리 사이드바 대신 본문(46rem) + 우측 TOC 2열
+- 목록 페이지: 좌측 사이드바(15rem) + 콘텐츠
 
-## 3. Typography
+## 4. Typography
 
-- Sans: `Apple SD Gothic Neo, Noto Sans KR, -apple-system, ...` (기존 스택 유지)
-- Mono: `SF Mono, Fira Code, Roboto Mono, Monaco, Consolas, monospace`
-- Scale: xs 0.75 / sm 0.875 / base 1 / lg 1.125 / xl 1.25 / 2xl 1.5 / 3xl 1.875 / 4xl 2.25rem
-- 날짜·카운트 등 숫자에는 `font-variant-numeric: tabular-nums`
-- 제목: `line-height-tight`(1.25) + weight 600–700, 본문 line-height-relaxed(1.75)
-- 게시물 본문(`.post-content`) 최대 폭 제한 없음(그리드가 관리), 문단 폭 체감 ~65ch
-
-## 4. Spacing / Radius / Shadow / Motion (기존 유지)
-
-- Space: 1=4px … 12=48px 스케일
-- Radius: sm 4 / md 8 / lg 12 / xl 16px. 컨테이너는 lg–xl, 내부 요소는 sm–md
-- Shadow: sm/md/lg 기존 정의. shadow tint는 slate 기반(rgb(15 23 42 / x)) 허용
-- Motion: fast 150ms / base 250ms / slow 350ms ease. **GPU-composited 속성만**
-  (transform, opacity, filter). 레이아웃 속성 애니메이션 금지.
-  `@media (prefers-reduced-motion: reduce)`에서 transition/animation 비활성.
+- Sans: `Apple SD Gothic Neo, Noto Sans KR, -apple-system, ...` / Mono: `SF Mono, Fira Code, ...`
+- **한글 규칙**: `word-break: keep-all` + `overflow-wrap: break-word` (어절 단위 줄바꿈)
+- 본문 line-height 1.8 (한글 가독), 제목 1.25, 코드 1.7
+- Scale: xs .75 / sm .875 / base 1 / lg 1.125 / xl 1.25 / 2xl 1.5 / 3xl 1.875 / 4xl 2.25rem
+- 위계: 제목 text+600 / 본문 secondary+400 / 메타 muted+sm / 날짜 tabular-nums
+- 날짜·카테고리·읽기시간 등 metadata는 아이콘 없이 텍스트만, `·` 구분
 
 ## 5. Components & States
 
-### Header / Nav
-- sticky top, backdrop blur 유지. `.nav-current` = primary color + weight 600
-- 모바일: 햄버거 → max-height 드롭다운 (기존 동작 유지)
+### Post List Row (홈 — 카드 그리드 대체)
+- flat row, 행 구분은 `border-bottom` hairline. 박스/그림자/둥근테두리 없음
+- 구조: `[chip] 제목 ······ 날짜` / 아래 설명(sm, muted, 1줄 clamp) / 아래 태그
+- 태그는 **최대 2개 + `+N`** 축약 (홈 한정)
+- hover: row 배경 `--color-background-alt`만 (translate/그림자 금지), 제목 색 유지
+- hero: 좌측 정렬, 배경 그라디언트 제거(flat), 제목 3xl + 설명 + "총 N개의 글" 메타
 
-### Post Card (홈)
-- border + radius-lg + shadow-sm, hover: translateY(-2px)+shadow-md (transform만)
-- 구성: **카테고리 칩**(신규, 좌상단) → 제목 → 날짜(tabular-nums) → 발췌 → 태그 칩들
+### Header (sticky)
+- 높이 4rem, 하단 hairline, backdrop blur
+- nav-current: 텍스트 색 + **하단 2px 인디케이터** (색상만으로 구분 금지)
+- 우측: 검색 버튼(`Ctrl K` 키 힌트 표시, 아이콘+텍스트) · 테마 토글(아이콘 버튼)
+- 모바일: 햄버거 + 검색/테마 아이콘 유지
 
-### Chip (카테고리/태그 공용 프리미티브 — 신규)
-- 패딩 4px×10px, radius-sm, bg background-alt, border border-light, font-xs
-- 카테고리 칩은 primary tint variant 허용: bg `rgb(37 99 235 / .08)`, text primary-dark
-- hover: primary bg + white text (기존 태그 hover 규칙 승계)
+### Command Palette (Ctrl/Cmd+K)
+- overlay: `rgba(0,0,0,.5)` 배경 + 중앙 패널(radius-lg, surface, border, shadow-lg)
+- 입력 즉시 필터(제목·설명·카테고리·태그 대상, 대소문자 무시), 결과 없으면 빈 상태 문구
+- 키보드: ↑↓ 이동 / Enter 이동 / Esc 닫기 / 클릭 닫기. 활성 항목 배경 alt
+- 열림 때 body 스크롤 잠금, 닫히면 해제. 검색 데이터는 인라인 JSON (`#search-data`)
 
-### Categories Archive (/categories/)
-- 페이지 헤더: h1 + 총 게시물 수 표시
-- 각 섹션: 카테고리명(h2) + 개수. 포스트 행은 리스트 row — hover 시 배경 alt 전환,
-  링크 text-secondary→primary. 날짜 우측 정렬(tabular-nums), 모바일에서 세로 스택
-- 필터 상태 메시지는 한국어 ("전체 카테고리 N개", "『X』 카테고리 글 보는 중") + aria-live
-- 해시 필터 동작(기존 JS) 유지 — data-category-id 계약 그대로
+### TOC (포스트)
+- 데스크톱 ≥1200px: 우측 sticky(top = header+여백), h2/h3 트리(h3 들여쓰기), xs 크기
+- scrollspy: 현재 섹션 링크 `--color-text` + 좌측 2px primary 인디케이터, 나머지 muted
+- 모바일/<1200px: 본문 상단 `<details>` 접이식 ("목차" 요약, 열면 같은 리스트)
+- heading에 id 없으면 JS가 부여
 
-### Sidebar
-- 데스크톱(≥1024px): sticky 18rem 열, 모바일: 콘텐츠 하단. 기존 grid-area 계약 유지
+### Chip
+- 패딩 3px 10px, radius-sm, xs, border-light. 카테고리 variant: primary tint
+- hover: primary bg + white. 필터바의 활성 칩은 `is-active` (primary 채움)
 
-### Post Page
-- 메타: 날짜 · 카테고리 칩 · 읽는 시간(추정, 200wpm)
-- 하단 네비게이션: **이전 글 ← / 홈 / → 다음 글 3분할**(신규 — 기존은 다음글만)
-- taxonomy footer: 카테고리는 /categories/#slug 링크 칩, 태그는 #tag 텍스트
+### Categories 페이지
+- 상단 칩 필터바: `전체 N` + 카테고리별 `이름 N` — 클릭 시 해당 섹션만 표시, URL hash 동기화(기존 딥링크 유지)
+- 섹션/행 구조는 유지, 행 hover는 배경 alt
 
-### Code Block (`.highlight pre`)
-- radius-lg, padding 16×20, overflow-x auto, font-mono, font-size sm, line-height 1.7
-- 상단 바: 언어명 소문자 라벨(code-muted), 우측 상단 모서리 radius 0 처리 없음(통일 lg)
-- 인라인 `code`: 라이트 배경 유지(위 표)
+### Sidebar (목록 페이지)
+- flat: 카드 테두리/그림자 제거, 제목 + 링크 리스트 + 우측 개수(muted)
+- sticky top = header + 여백
 
-### Blockquote (신규)
-- 좌측 3px primary 보더, bg background-alt, radius-md, text-secondary
+### Code / Table / 반응형 오버플로
+- 코드 블록: radius-lg, x-scroll, 언어 라벨 우상단 (기존 유지)
+- 표: block + x-scroll + 터치 스크롤, 셀 내 코드는 wrap
+- 태그 목록/칩: wrap. 인라인 코드: `overflow-wrap: anywhere`
 
 ## 6. Accessibility Constraints
 
-- 모든 인터랙티브 요소 `:focus-visible`에 2px primary outline + 2px offset
-- 필터 상태 변경은 `aria-live="polite"` 영역으로 안내 (기존 유지)
-- 본문 텍스트 대비 ≥ 4.5:1 (text-secondary on white = 7.6:1 ✅)
-- 햄버거 버튼 aria-expanded/label 토글 (기존 유지)
+- `:focus-visible` 2px primary outline + 2px offset (다크에선 밝은 blue)
+- 필터/검색 결과 수 변화는 aria-live 영역 안내, 팔레트 입력은 combobox 패턴(aria-expanded/activedescendant)
+- 테마 토글은 `aria-label` + `aria-pressed`, 시스템 설정 기본 + localStorage 기억
+- 대비 ≥ 4.5:1 (다크 muted #8b949e on #0d1117 = 5.0:1 ✅)
+- `prefers-reduced-motion` 존중 (기존 블록 유지)
 
-## 7. Responsive Behavior
+## 7. Motion
 
-- Breakpoints: 640 / 767(mobile menu) / 1024(sidebar 전환)
-- 카테고리 행·포스트 카드: <640px 세로 스택
-- 콘텐츠 최대폭 `--layout-max-width: 90rem` 유지
+- 최소 원칙: hover/active/transition 150ms 위주, transform/opacity만
+- row hover는 배경색만. 등장 애니메이션/스크롤 트리거 금지
 
 ## 8. Accepted Debt
 
-- 다크모드 미지원 (추후 `prefers-color-scheme` 확장 여지)
-- 페이지네이션(jekyll-paginate) 미사용 — 홈에 전체 목록 노출
-- MathJax 전역 로드 → post 레이아웃으로 한정하는 것으로 완화
+- 검색은 클라이언트 필터(전문 검색 아님) — 30여 편 규모에 충분
+- 페이지네이션 미사용 — 홈 전체 목록
+- MathJax post 한정 로드

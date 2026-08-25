@@ -2,63 +2,81 @@
 layout: default
 ---
 
-<article class="post" itemscope itemtype="http://schema.org/BlogPosting">
-  <header class="post-header">
-    <h1 class="post-title" itemprop="headline">{{ page.title }}</h1>
-    
-    <div class="post-meta">
-      <time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">
-        {{ page.date | date: "%Y년 %m월 %d일" }}
-      </time>
+<div class="post-layout">
 
+  <details class="toc-collapse">
+    <summary>목차</summary>
+    <nav class="toc-list-wrap" aria-label="목차 (모바일)">
+      <ul class="toc-list" id="tocMobile"></ul>
+    </nav>
+  </details>
+
+  <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+    <header class="post-header">
+      <h1 class="post-title" itemprop="headline">{{ page.title }}</h1>
+
+      <div class="post-meta">
+        <time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">
+          {{ page.date | date: "%Y년 %m월 %d일" }}
+        </time>
+
+        {% if page.categories %}
+        <span class="post-meta-categories">
+          {% for category in page.categories %}
+            <a class="chip chip--category" href="{{ '/categories/' | relative_url }}#{{ category | slugify }}">{{ category }}</a>
+          {% endfor %}
+        </span>
+        {% endif %}
+
+        {% assign post_words = content | number_of_words %}
+        {% assign reading_minutes = post_words | divided_by: 200 %}
+        {% if reading_minutes < 1 %}{% assign reading_minutes = 1 %}{% endif %}
+        <span class="reading-time">약 {{ reading_minutes }}분 읽기</span>
+      </div>
+    </header>
+
+    <div class="post-content" itemprop="articleBody">
+      {{ content }}
+    </div>
+
+    {% if page.categories or page.tags %}
+    <footer class="post-taxonomy">
       {% if page.categories %}
-      <span class="post-meta-categories">
-        {% for category in page.categories %}
-          <a class="chip chip--category" href="{{ '/categories/' | relative_url }}#{{ category | slugify }}">{{ category }}</a>
-        {% endfor %}
-      </span>
+      <section class="taxonomy-group" aria-labelledby="post-categories-title">
+        <h2 id="post-categories-title" class="taxonomy-title">Categories</h2>
+        <ul class="post-tags">
+          {% for category in page.categories %}
+            {% assign category_id = category | slugify %}
+            <li>
+              <a href="{{ '/categories/#' | append: category_id | relative_url }}">{{ category }}</a>
+            </li>
+          {% endfor %}
+        </ul>
+      </section>
       {% endif %}
 
-      {% assign post_words = content | number_of_words %}
-      {% assign reading_minutes = post_words | divided_by: 200 %}
-      {% if reading_minutes < 1 %}{% assign reading_minutes = 1 %}{% endif %}
-      <span class="reading-time">약 {{ reading_minutes }}분 읽기</span>
-    </div>
-  </header>
-
-  <div class="post-content" itemprop="articleBody">
-    {{ content }}
-  </div>
-
-  {% if page.categories or page.tags %}
-  <footer class="post-taxonomy">
-    {% if page.categories %}
-    <section class="taxonomy-group" aria-labelledby="post-categories-title">
-      <h2 id="post-categories-title" class="taxonomy-title">Categories</h2>
-      <ul class="post-tags">
-        {% for category in page.categories %}
-          {% assign category_id = category | slugify %}
-          <li>
-            <a href="{{ '/categories/#' | append: category_id | relative_url }}">{{ category }}</a>
-          </li>
-        {% endfor %}
-      </ul>
-    </section>
+      {% if page.tags %}
+      <section class="taxonomy-group" aria-labelledby="post-tags-title">
+        <h2 id="post-tags-title" class="taxonomy-title">Tags</h2>
+        <div class="post-tags">
+          {% for tag in page.tags %}
+            <span class="tag">#{{ tag }}</span>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+    </footer>
     {% endif %}
+  </article>
 
-    {% if page.tags %}
-    <section class="taxonomy-group" aria-labelledby="post-tags-title">
-      <h2 id="post-tags-title" class="taxonomy-title">Tags</h2>
-      <div class="post-tags">
-        {% for tag in page.tags %}
-          <span class="tag">#{{ tag }}</span>
-        {% endfor %}
-      </div>
-    </section>
-    {% endif %}
-  </footer>
-  {% endif %}
-</article>
+  <aside class="post-toc-wrap" aria-label="목차">
+    <nav class="post-toc" id="postToc" hidden>
+      <p class="post-toc-label">이 문서에서</p>
+      <ul class="toc-list" id="tocDesktop"></ul>
+    </nav>
+  </aside>
+
+</div>
 
 <nav class="pagination" aria-label="게시물 내비게이션">
   <div class="pagination-wrapper">
@@ -104,6 +122,87 @@ layout: default
     }
   });
 })();
+
+(function() {
+  var headings = document.querySelectorAll('.post-content h2, .post-content h3');
+  var desktopToc = document.getElementById('postToc');
+  var desktopList = document.getElementById('tocDesktop');
+  var mobileList = document.getElementById('tocMobile');
+
+  if (headings.length < 2 || !desktopList || !mobileList) {
+    var collapse = document.querySelector('.toc-collapse');
+    if (collapse) {
+      collapse.hidden = true;
+    }
+    if (desktopToc) {
+      desktopToc.hidden = true;
+    }
+    return;
+  }
+
+  headings.forEach(function(heading, index) {
+    if (!heading.id) {
+      heading.id = 'section-' + (index + 1);
+    }
+  });
+
+  function buildList() {
+    var frag = document.createDocumentFragment();
+    headings.forEach(function(heading) {
+      var li = document.createElement('li');
+      li.className = heading.tagName === 'H3' ? 'toc-item toc-item--h3' : 'toc-item';
+      var a = document.createElement('a');
+      a.className = 'toc-link';
+      a.href = '#' + heading.id;
+      a.dataset.target = heading.id;
+      a.textContent = heading.textContent;
+      li.appendChild(a);
+      frag.appendChild(li);
+    });
+    return frag;
+  }
+
+  desktopList.appendChild(buildList());
+  mobileList.appendChild(buildList());
+  if (desktopToc) {
+    desktopToc.hidden = false;
+  }
+
+  var links = Array.prototype.slice.call(desktopList.querySelectorAll('.toc-link'));
+
+  function setActive(id) {
+    links.forEach(function(link) {
+      link.classList.toggle('is-active', link.dataset.target === id);
+    });
+  }
+
+  if ('IntersectionObserver' in window) {
+    var visible = new Set();
+
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          visible.add(entry.target.id);
+        } else {
+          visible.delete(entry.target.id);
+        }
+      });
+
+      var current = headings[0] ? headings[0].id : '';
+      for (var i = 0; i < headings.length; i++) {
+        if (visible.has(headings[i].id)) {
+          current = headings[i].id;
+          break;
+        }
+      }
+      setActive(current);
+    }, {
+      rootMargin: '-72px 0px -70% 0px'
+    });
+
+    headings.forEach(function(heading) {
+      observer.observe(heading);
+    });
+  }
+})();
 </script>
-
-

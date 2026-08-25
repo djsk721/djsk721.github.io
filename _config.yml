@@ -38,5 +38,6 @@ exclude:
   - .bundle-home
   - Gemfile
   - README.md
+  - DESIGN.md
   - .gitignore
   - node_modules

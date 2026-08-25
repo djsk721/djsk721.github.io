@@ -6,34 +6,38 @@ permalink: /
 <section class="hero">
   <h2>Hello World</h2>
   <p>잡다한 기술 블로그.</p>
+  <p class="hero-meta">총 {{ site.posts | size }}개의 글 · {{ site.categories | size }}개의 카테고리</p>
 </section>
 
-<div class="posts-grid">
+<h2 class="section-label">최근 글</h2>
+
+<ul class="post-list">
   {% for post in site.posts %}
-    <article class="post-card">
-      <header class="post-card-header">
+  <li class="post-row">
+    <a class="post-row-link" href="{{ post.url | relative_url }}">
+      <div class="post-row-header">
         {% if post.categories %}
-        <div class="post-card-categories">
-          {% for category in post.categories %}
-            <a class="chip chip--category" href="{{ '/categories/' | relative_url }}#{{ category | slugify }}">{{ category }}</a>
-          {% endfor %}
-        </div>
+        <span class="chip chip--category">{{ post.categories.first }}</span>
         {% endif %}
-        <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
-        <time datetime="{{ post.date | date_to_xmlschema }}">
+        <h3 class="post-row-title">{{ post.title }}</h3>
+        <time class="post-row-date" datetime="{{ post.date | date_to_xmlschema }}">
           {{ post.date | date: "%Y. %m. %d." }}
         </time>
-      </header>
-
-      <p class="post-excerpt">{{ post.description }}</p>
-
+      </div>
+      {% if post.description %}
+      <p class="post-row-excerpt">{{ post.description }}</p>
+      {% endif %}
       {% if post.tags %}
-      <div class="post-tags">
-        {% for tag in post.tags %}
-          <span class="tag">#{{ tag }}</span>
+      <div class="post-row-tags">
+        {% for tag in post.tags limit: 2 %}
+        <span class="tag">#{{ tag }}</span>
         {% endfor %}
+        {% if post.tags.size > 2 %}
+        <span class="tag tag-more">+{{ post.tags.size | minus: 2 }}</span>
+        {% endif %}
       </div>
       {% endif %}
-    </article>
+    </a>
+  </li>
   {% endfor %}
-</div>
+</ul>

@@ -24,6 +24,40 @@
       </ul>
     </nav>
 
+    <div class="header-actions">
+      <button
+        class="search-trigger"
+        id="searchTrigger"
+        type="button"
+        aria-label="게시물 검색 열기"
+        aria-haspopup="dialog"
+        aria-controls="commandPalette"
+      >
+        <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <span class="search-trigger-label">검색</span>
+        <kbd class="search-trigger-kbd" id="searchKbd">Ctrl K</kbd>
+      </button>
+
+      <button
+        class="theme-toggle"
+        id="themeToggle"
+        type="button"
+        aria-label="테마 전환"
+        aria-pressed="false"
+      >
+        <svg class="icon icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+        </svg>
+        <svg class="icon icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+        </svg>
+      </button>
+    </div>
+
     <button
       class="mobile-menu-toggle"
       id="mobileMenuToggle"
@@ -41,12 +75,47 @@
 
 <script>
 (function() {
-  const mobileToggle = document.getElementById('mobileMenuToggle');
-  const siteNav = document.getElementById('siteNav');
-  
+  var isMac = /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+  var kbd = document.getElementById('searchKbd');
+  if (kbd && isMac) {
+    kbd.textContent = '⌘K';
+  }
+
+  var toggle = document.getElementById('themeToggle');
+  var root = document.documentElement;
+
+  function syncToggle() {
+    var dark = root.getAttribute('data-theme') === 'dark';
+    toggle.setAttribute('aria-pressed', String(dark));
+    toggle.setAttribute('aria-label', dark ? '라이트 모드로 전환' : '다크 모드로 전환');
+  }
+
+  if (toggle) {
+    syncToggle();
+    toggle.addEventListener('click', function() {
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('theme', next); } catch (e) {}
+      syncToggle();
+    });
+
+    var media = window.matchMedia('(prefers-color-scheme: dark)');
+    var stored = null;
+    try { stored = localStorage.getItem('theme'); } catch (e) {}
+    if (!stored && media.addEventListener) {
+      media.addEventListener('change', function(e) {
+        root.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+        syncToggle();
+      });
+    }
+  }
+
+  var mobileToggle = document.getElementById('mobileMenuToggle');
+  var siteNav = document.getElementById('siteNav');
+
   if (mobileToggle && siteNav) {
     mobileToggle.addEventListener('click', function() {
-      const isExpanded = this.getAttribute('aria-expanded') === 'true';
+      var isExpanded = this.getAttribute('aria-expanded') === 'true';
 
       this.setAttribute('aria-expanded', String(!isExpanded));
       this.setAttribute('aria-label', isExpanded ? '메뉴 열기' : '메뉴 닫기');
