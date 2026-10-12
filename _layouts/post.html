@@ -104,7 +104,7 @@ layout: default
 
 <script>
 (function() {
-  document.querySelectorAll('.post-content .highlighter-rouge[class*="language-"]').forEach(function(block) {
+  document.querySelectorAll('.post-content div.highlighter-rouge[class*="language-"]').forEach(function(block) {
     var match = block.className.match(/language-([\w-]+)/);
     if (!match) {
       return;

@@ -1227,7 +1227,7 @@ article code {
   font-size: 0.875em;
 }
 
-article .highlighter-rouge {
+article div.highlighter-rouge {
   position: relative;
   margin: var(--space-6) 0;
   background-color: var(--code-bg);
@@ -1269,8 +1269,8 @@ article .highlighter-rouge {
   word-break: break-word;
 }
 
-.highlighter-rouge code,
-.highlighter-rouge pre code {
+article div.highlighter-rouge code,
+article div.highlighter-rouge pre code {
   display: block;
   width: max-content;
   min-width: 100%;
@@ -1282,6 +1282,17 @@ article .highlighter-rouge {
   font-family: var(--font-family-mono);
   font-size: var(--font-size-sm);
   line-height: 1.7;
+}
+
+article code.highlighter-rouge,
+article code.highlighter-rouge.code-block--bare {
+  display: inline;
+  width: auto;
+  min-width: 0;
+  margin: 0;
+  overflow: visible;
+  white-space: normal;
+  word-break: normal;
 }
 
 /* Rouge syntax mapping */
