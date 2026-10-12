@@ -1246,19 +1246,45 @@ article div.highlighter-rouge {
   overflow: hidden;
 }
 
+.code-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  min-height: 2rem;
+  padding: 0.3rem var(--space-3);
+  border-bottom: 1px solid var(--code-border);
+  background-color: var(--code-header-bg);
+  white-space: normal;
+}
+
 .code-lang {
-  position: absolute;
-  top: var(--space-2);
-  right: var(--space-3);
   font-family: var(--font-family-mono);
   font-size: var(--font-size-xs);
   line-height: 1;
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
-  background-color: var(--code-header-bg);
   color: var(--code-muted);
   pointer-events: none;
   text-transform: lowercase;
+}
+
+.code-copy {
+  margin: 0;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--code-muted);
+  font-family: inherit;
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.code-copy:hover,
+.code-copy:focus-visible {
+  color: var(--code-text);
+  border-color: var(--code-border);
+  background-color: rgb(255 255 255 / 0.06);
 }
 
 .highlighter-rouge pre.highlight,
@@ -1308,8 +1334,10 @@ article code.highlighter-rouge.code-block--bare {
   border-radius: var(--radius-sm);
   white-space: normal;
   word-break: normal;
+  overflow-wrap: anywhere;
   font-size: 0.875em;
   line-height: inherit;
+  vertical-align: baseline;
 }
 
 article div.language-plaintext.highlighter-rouge,
@@ -1328,10 +1356,24 @@ article div.language-text.highlighter-rouge .highlight span {
   background: transparent;
 }
 
-article div.language-plaintext .code-lang,
-article div.language-text .code-lang {
-  background-color: var(--color-background-alt);
+article div.language-plaintext .code-toolbar,
+article div.language-text .code-toolbar {
+  background-color: transparent;
+  border-bottom-color: var(--color-border);
+}
+
+article div.language-plaintext .code-copy,
+article div.language-text .code-copy {
   color: var(--color-text-secondary);
+}
+
+article div.language-plaintext .code-copy:hover,
+article div.language-plaintext .code-copy:focus-visible,
+article div.language-text .code-copy:hover,
+article div.language-text .code-copy:focus-visible {
+  color: var(--color-text);
+  border-color: var(--color-border);
+  background-color: var(--color-background-alt);
 }
 
 /* Rouge syntax mapping */

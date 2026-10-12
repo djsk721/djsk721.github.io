@@ -104,22 +104,73 @@ layout: default
 
 <script>
 (function() {
+  var unnamed = { plaintext: true, text: true };
+
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise(function(resolve, reject) {
+      var area = document.createElement('textarea');
+      area.value = text;
+      area.setAttribute('readonly', '');
+      area.style.position = 'fixed';
+      area.style.left = '-9999px';
+      document.body.appendChild(area);
+      area.select();
+      try {
+        document.execCommand('copy') ? resolve() : reject(new Error('copy failed'));
+      } catch (err) {
+        reject(err);
+      }
+      document.body.removeChild(area);
+    });
+  }
+
   document.querySelectorAll('.post-content div.highlighter-rouge[class*="language-"]').forEach(function(block) {
-    var match = block.className.match(/language-([\w-]+)/);
-    if (!match) {
+    if (block.querySelector('.code-toolbar')) {
       return;
     }
-    var target = block.querySelector('.highlight');
-    if (!target) {
+    var match = block.className.match(/language-([\w-]+)/);
+    var language = match ? match[1] : '';
+    if (!block.querySelector('.highlight')) {
       block.classList.add('code-block--bare');
-      target = block;
     }
-    if (!block.querySelector('.code-lang')) {
+
+    var toolbar = document.createElement('div');
+    toolbar.className = 'code-toolbar';
+
+    if (language && !unnamed[language]) {
       var label = document.createElement('span');
       label.className = 'code-lang';
-      label.textContent = match[1];
-      target.appendChild(label);
+      label.textContent = language;
+      toolbar.appendChild(label);
     }
+
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'code-copy';
+    button.textContent = '복사';
+    button.setAttribute('aria-label', '코드 복사');
+    button.addEventListener('click', function() {
+      var code = block.querySelector('code');
+      var text = code ? code.innerText : '';
+      copyText(text).then(function() {
+        button.textContent = '복사됨';
+        button.setAttribute('aria-label', '코드를 복사했습니다');
+        window.setTimeout(function() {
+          button.textContent = '복사';
+          button.setAttribute('aria-label', '코드 복사');
+        }, 1500);
+      }).catch(function() {
+        button.textContent = '실패';
+        window.setTimeout(function() {
+          button.textContent = '복사';
+        }, 1500);
+      });
+    });
+    toolbar.appendChild(button);
+    block.insertBefore(toolbar, block.firstChild);
   });
 })();
 
