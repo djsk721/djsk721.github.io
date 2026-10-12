@@ -36,6 +36,11 @@
   --code-header-bg: #16213b;
   --code-muted: #7c8db0;
 
+  /* Inline code / plaintext — follows the page theme */
+  --inline-code-bg: #f1f5f9;
+  --inline-code-text: #1e293b;
+  --inline-code-border: var(--color-border);
+
   /* Syntax highlighting (Rouge mapping) */
   --syntax-keyword: #93c5fd;
   --syntax-string: #86efac;
@@ -114,7 +119,12 @@ html[data-theme="dark"] {
   --color-border-light: #21262d;
   --code-bg: #161b22;
   --code-border: #30363d;
+  --code-text: #e6edf3;
   --code-header-bg: #1c2431;
+  --code-muted: #b6c2cf;
+  --inline-code-bg: rgb(110 118 129 / 0.25);
+  --inline-code-text: #e6edf3;
+  --inline-code-border: transparent;
   --shadow-sm: 0 1px 2px 0 rgb(1 4 9 / 0.3);
   --shadow-md: 0 4px 6px -1px rgb(1 4 9 / 0.3), 0 2px 4px -2px rgb(1 4 9 / 0.3);
   --shadow-lg: 0 10px 15px -3px rgb(1 4 9 / 0.4), 0 4px 6px -4px rgb(1 4 9 / 0.4);
@@ -1219,9 +1229,9 @@ article.content article {
 /* Code Blocks — dark editor material */
 article code {
   padding: 0.1em 0.4em;
-  background-color: #f1f5f9;
-  color: #334155;
-  border: 1px solid var(--color-border);
+  background-color: var(--inline-code-bg);
+  color: var(--inline-code-text);
+  border: 1px solid var(--inline-code-border);
   border-radius: var(--radius-sm);
   font-family: var(--font-family-mono);
   font-size: 0.875em;
@@ -1291,8 +1301,37 @@ article code.highlighter-rouge.code-block--bare {
   min-width: 0;
   margin: 0;
   overflow: visible;
+  padding: 0.1em 0.4em;
+  background-color: var(--inline-code-bg);
+  color: var(--inline-code-text);
+  border: 1px solid var(--inline-code-border);
+  border-radius: var(--radius-sm);
   white-space: normal;
   word-break: normal;
+  font-size: 0.875em;
+  line-height: inherit;
+}
+
+article div.language-plaintext.highlighter-rouge,
+article div.language-text.highlighter-rouge {
+  background-color: var(--inline-code-bg);
+  border-color: var(--inline-code-border);
+}
+
+article div.language-plaintext.highlighter-rouge code,
+article div.language-plaintext.highlighter-rouge pre,
+article div.language-text.highlighter-rouge code,
+article div.language-text.highlighter-rouge pre,
+article div.language-plaintext.highlighter-rouge .highlight span,
+article div.language-text.highlighter-rouge .highlight span {
+  color: var(--inline-code-text);
+  background: transparent;
+}
+
+article div.language-plaintext .code-lang,
+article div.language-text .code-lang {
+  background-color: var(--color-background-alt);
+  color: var(--color-text-secondary);
 }
 
 /* Rouge syntax mapping */
@@ -1330,10 +1369,11 @@ article code.highlighter-rouge.code-block--bare {
   display: inline;
 }
 
-html[data-theme="dark"] article code {
-  background-color: rgb(110 118 129 / 0.25);
-  color: var(--color-text);
-  border-color: transparent;
+html[data-theme="dark"] article div.highlighter-rouge:not(.language-plaintext):not(.language-text) code,
+html[data-theme="dark"] article div.highlighter-rouge:not(.language-plaintext):not(.language-text) pre code {
+  background: transparent;
+  color: var(--code-text);
+  border: 0;
 }
 
 /* Blockquote */
